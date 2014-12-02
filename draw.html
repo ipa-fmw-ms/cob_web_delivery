@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+    <script src="http://cdn.robotwebtools.org.s3.amazonaws.com/threejs/current/three.min.js"></script>
+    <script  src="http://cdn.robotwebtools.org/EaselJS/current/easeljs.min.js"></script>
+    <script  src="http://cdn.robotwebtools.org/EventEmitter2/current/eventemitter2.min.js"></script>
+    <script  src="http://cdn.robotwebtools.org/roslibjs/current/roslib.min.js"></script>
+    <script  src="http://cdn.robotwebtools.org/ros2djs/current/ros2d.min.js"></script>
+    <script  src="http://cdn.robotwebtools.org/ros3djs/current/ros3d.min.js"></script>
+    <script  src="http://code.jquery.com/jquery-2.1.0.min.js"></script>
+
+<script>
+  /**
+   * Setup all visualization elements when the page is loaded. 
+   */
+    // Connect to ROS.
+ var ros = new ROSLIB.Ros();
+// If there is an error on the backend, an 'error' emit will be emitted.
+ros.on('error', function(error) {
+document.getElementById('connecting').style.display = 'none';
+document.getElementById('connected').style.display = 'none';
+document.getElementById('closed').style.display = 'none';
+document.getElementById('error').style.display = 'inline';
+console.log(error);
+});
+// Find out exactly when we made a connection.
+ros.on('connection', function() {
+console.log('Connection made!');
+document.getElementById('connecting').style.display = 'none';
+document.getElementById('error').style.display = 'none';
+document.getElementById('closed').style.display = 'none';
+document.getElementById('connected').style.display = 'inline';
+});
+ros.on('close', function() {
+console.log('Connection closed.');
+document.getElementById('connecting').style.display = 'none';
+document.getElementById('connected').style.display = 'none';
+document.getElementById('closed').style.display = 'inline';
+});
+// Create a connection to the rosbridge WebSocket server.
+ros.connect('ws://localhost:9090');
+
+  function init() {
+
+    // Create the main viewer.
+    var viewer = new ROS2D.Viewer({
+      divID : 'map',
+      width : 544,
+      height : 768
+    });
+    // Setup the map client.
+    var gridClient = new ROS2D.OccupancyGridClient({
+      ros : ros,
+      rootObject : viewer.scene
+    });
+    gridClient.on('change', function() {
+      viewer.scaleToDimensions(gridClient.currentGrid.width, gridClient.currentGrid.height);
+      viewer.shift(gridClient.currentGrid.pose.position.x, gridClient.currentGrid.pose.position.y);
+    });
+
+    // Callback functions when there is mouse interaction with the polygon
+    var clickedPolygon = false;
+    var selectedPointIndex = null;
+
+    var pointCallBack = function(type, event, index) {
+      if (type === 'mousedown') {
+        if (event.nativeEvent.shiftKey === true) {
+          polygon.remPoint(index);
+        }
+        else {
+          selectedPointIndex = index;
+        }
+      }
+      clickedPolygon = true;
+    };
+
+    var lineCallBack = function(type, event, index) {
+      if (type === 'mousedown') {
+        if (event.nativeEvent.ctrlKey === true) {
+          polygon.splitLine(index);
+        }
+      }
+      clickedPolygon = true;
+    }
+
+    // Create the polygon
+    var polygon = new ROS2D.PolygonMarker({
+      lineColor : createjs.Graphics.getRGB(100, 100, 255,1),
+      pointCallBack : pointCallBack,
+      lineCallBack : lineCallBack,
+      lineSize : 0.2,
+      pointSize : 0.5
+    });
+  
+    // Add the polygon to the viewer
+    viewer.scene.addChild(polygon);
+
+    // Event listeners for mouse interaction with the stage
+    viewer.scene.mouseMoveOutside = false; // doesn't seem to work
+
+    viewer.scene.addEventListener('stagemousemove', function(event) {
+      // Move point when it's dragged
+      if (selectedPointIndex !== null) {
+        var pos = viewer.scene.globalToRos(event.stageX, event.stageY);
+        polygon.movePoint(selectedPointIndex, pos);
+      }
+    });
+  
+    viewer.scene.addEventListener('stagemouseup', function(event) {
+      // Add point when not clicked on the polygon
+      if (selectedPointIndex !== null) {
+        selectedPointIndex = null;
+      }
+      else if (viewer.scene.mouseInBounds === true && clickedPolygon === false) {
+        var pos = viewer.scene.globalToRos(event.stageX, event.stageY);
+        polygon.addPoint(pos);
+        console.log(pos);
+      }
+      clickedPolygon = false;
+    });
+
+  }
+  function callOrderService(posx,posy){
+  var v1 = new ROSLIB.Vector3({
+    x : posx,
+    y : posy,
+    z : 0
+  });
+  //var v2 = v1.clone();
+  //v1.add(v2);
+  console.log(v1);
+  var q1 = new ROSLIB.Quaternion({
+    x : 0.1,
+    y : 0.2,
+    z : 0.3,
+    w : 0.4
+  });
+  //var q2 = q1.clone();
+  //q1.multiply(q2);
+  //q1.invert();
+  console.log(q1);
+
+  var p = new ROSLIB.Pose({
+    position : v1,
+    orientation : q1
+  });
+  console.log(p);
+  
+  var orderQueClient = new ROSLIB.Service({
+    ros : ros,
+    name : '/order_que',
+    serviceType : 'cob_web_delivery/OrderQue'
+  });
+
+  var request = new ROSLIB.ServiceRequest({
+    target_pose1 : p,
+    target_pose2 : p,
+    item : 'test',
+    priority : 2
+  });
+  console.log(request);
+  
+  orderQueClient.callService(request, function(result) {
+    console.log('calling srv');
+    console.log('Result for service call on '+ ': '+ str(result.accepted));
+    return true;
+  });
+
+
+
+  }
+
+  function FindPosition(oElement)
+  {
+    if(typeof( oElement.offsetParent ) != "undefined")
+    {
+      for(var posX = 0, posY = 0; oElement; oElement = oElement.offsetParent)
+      {
+        posX += oElement.offsetLeft;
+        posY += oElement.offsetTop;
+      }
+        return [ posX, posY ];
+      }
+      else
+      {
+        return [ oElement.x, oElement.y ];
+      }
+  }
+  
+  function GetCoordinates(e)
+  {
+    var PosX = 0;
+    var PosY = 0;
+    var ImgPos;
+    ImgPos = FindPosition(myImg);
+    if (!e) var e = window.event;
+    if (e.pageX || e.pageY)
+    {
+      PosX = e.pageX;
+      PosY = e.pageY;
+    }
+    else if (e.clientX || e.clientY)
+      {
+        PosX = e.clientX + document.body.scrollLeft
+          + document.documentElement.scrollLeft;
+        PosY = e.clientY + document.body.scrollTop
+          + document.documentElement.scrollTop;
+      }
+    PosX = PosX - ImgPos[0];
+    PosY = PosY - ImgPos[1];
+    TransX = -((19.2/0.05)-PosX)*0.05;
+    TransY = ((19.2/0.05)-PosY)*0.05
+    document.getElementById("x").innerHTML = TransX;
+    document.getElementById("y").innerHTML = TransY;
+    document.getElementById('confirmOrder').style.display = 'block';
+  }
+  
+  function confirmProduct() {
+     confirmed = confirm(document.getElementById("Product").value);
+     if (confirmed) {
+       document.getElementById("output").textContent = document.getElementById("Product").value;
+       document.getElementById('map').style.display = 'block';
+       document.getElementById('map').style.opacity = '0.7';
+       document.getElementById('h2').style.display = 'block';      
+     }
+  }
+  
+  function confirmOrder() {
+    confirmed = confirm("Product " + document.getElementById("Product").value + " will be delivered to X: " + document.getElementById("x").textContent + " Y: " + document.getElementById("y").textContent);
+    callOrderService(document.getElementById("x").textContent, document.getElementById("y").textContent)
+  }
+  
+</script>
+</head>
+
+<h1>Robot Online Delivery System</h1>
+  <p>select a Product and the Destination</p>
+  
+<body onload="init();">
+ <div id="statusIndicator">
+<p id="connecting">
+Connecting to rosbridge...
+</p>
+<p id="connected" style="color:#00D600; display:none">
+Connected
+</p>
+<p id="error" style="color:#FF0000; display:none">
+Error in the backend!
+</p>
+<p id="closed" style="display:none">
+Connection closed.
+</p>
+</div>
+<p style="color:red;" id="output">No Product Selected</p>
+<br/>
+
+<!--canvas id="demoCanvas" width="500" height="200">
+alternate content
+</canvas-->
+
+<select id="Product">
+  <option value="Keks">Keks</option>
+  <option value="Pringles">Pringles</option>
+  <option value="Bier">Bier</option>
+  <option value="Zigaretten">Zigaretten</option>
+</select>
+<br/>
+
+<button type="button" onclick="confirmProduct()" >Confirm Product</button>
+<h2 style="display:none" id="h2">Select Destination</h2>
+
+<div style="display:block" id="map"></div>
+
+
+<p style="color:green">X:<span id="x"></span></p>
+<p style="color:blue">Y:<span id="y"></span></p>
+<button style="display:block" type="button" onclick="confirmOrder()" id="confirmOrder">Confirm Order</button>
+<p id="w1">w1</p>
+<p id="w2">w2</p>
+<p id="w3">w3</p>
+<p id="w4">w4</p>
+<p id="w5">w5</p>
+<p id="w6">w6</p>
+
+</body>
+
+<script>   
+var myImg = document.getElementById("map");
+myImg.onmousedown = GetCoordinates;
+</script>
+
+</html>
+

@@ -1,0 +1,8 @@
+#request
+geometry_msgs/PoseStamped target_pose1
+geometry_msgs/PoseStamped target_pose2
+string item
+uint8 priority
+---
+#response
+bool accepted
