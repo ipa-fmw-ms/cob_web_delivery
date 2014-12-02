@@ -41,6 +41,7 @@ document.getElementById('closed').style.display = 'inline';
 // Create a connection to the rosbridge WebSocket server.
 ros.connect('ws://localhost:9090');
 
+
   function init() {
 
     // Create the main viewer.
@@ -116,33 +117,25 @@ ros.connect('ws://localhost:9090');
         var pos = viewer.scene.globalToRos(event.stageX, event.stageY);
         polygon.addPoint(pos);
         console.log(pos);
+        document.getElementById("x").innerHTML = pos.x
+        document.getElementById("storePos").value = pos //Better Place
+        document.getElementById("y").innerHTML = pos.y
       }
       clickedPolygon = false;
     });
 
-  }
-  function callOrderService(posx,posy){
-  var v1 = new ROSLIB.Vector3({
-    x : posx,
-    y : posy,
-    z : 0
-  });
-  //var v2 = v1.clone();
-  //v1.add(v2);
-  console.log(v1);
-  var q1 = new ROSLIB.Quaternion({
+  }//end init TODO:intendations
+  
+  
+  function callOrderService(){
+  var q1 = new ROSLIB.Quaternion({ 
     x : 0.1,
     y : 0.2,
     z : 0.3,
     w : 0.4
   });
-  //var q2 = q1.clone();
-  //q1.multiply(q2);
-  //q1.invert();
-  console.log(q1);
-
   var p = new ROSLIB.Pose({
-    position : v1,
+    position : document.getElementById("storePos").value,
     orientation : q1
   });
   console.log(p);
@@ -156,64 +149,17 @@ ros.connect('ws://localhost:9090');
   var request = new ROSLIB.ServiceRequest({
     target_pose1 : p,
     target_pose2 : p,
-    item : 'test',
-    priority : 2
+    item : document.getElementById("Product").value,
+    priority : parseInt(document.getElementById("Priority").value)
   });
   console.log(request);
   
   orderQueClient.callService(request, function(result) {
     console.log('calling srv');
-    console.log('Result for service call on '+ ': '+ str(result.accepted));
+    console.log('Result for service call on '+ ': '+ result.accepted);
     return true;
   });
-
-
-
-  }
-
-  function FindPosition(oElement)
-  {
-    if(typeof( oElement.offsetParent ) != "undefined")
-    {
-      for(var posX = 0, posY = 0; oElement; oElement = oElement.offsetParent)
-      {
-        posX += oElement.offsetLeft;
-        posY += oElement.offsetTop;
-      }
-        return [ posX, posY ];
-      }
-      else
-      {
-        return [ oElement.x, oElement.y ];
-      }
-  }
   
-  function GetCoordinates(e)
-  {
-    var PosX = 0;
-    var PosY = 0;
-    var ImgPos;
-    ImgPos = FindPosition(myImg);
-    if (!e) var e = window.event;
-    if (e.pageX || e.pageY)
-    {
-      PosX = e.pageX;
-      PosY = e.pageY;
-    }
-    else if (e.clientX || e.clientY)
-      {
-        PosX = e.clientX + document.body.scrollLeft
-          + document.documentElement.scrollLeft;
-        PosY = e.clientY + document.body.scrollTop
-          + document.documentElement.scrollTop;
-      }
-    PosX = PosX - ImgPos[0];
-    PosY = PosY - ImgPos[1];
-    TransX = -((19.2/0.05)-PosX)*0.05;
-    TransY = ((19.2/0.05)-PosY)*0.05
-    document.getElementById("x").innerHTML = TransX;
-    document.getElementById("y").innerHTML = TransY;
-    document.getElementById('confirmOrder').style.display = 'block';
   }
   
   function confirmProduct() {
@@ -222,13 +168,13 @@ ros.connect('ws://localhost:9090');
        document.getElementById("output").textContent = document.getElementById("Product").value;
        document.getElementById('map').style.display = 'block';
        document.getElementById('map').style.opacity = '0.7';
-       document.getElementById('h2').style.display = 'block';      
+       document.getElementById('h2').style.display = 'block';
      }
   }
   
   function confirmOrder() {
-    confirmed = confirm("Product " + document.getElementById("Product").value + " will be delivered to X: " + document.getElementById("x").textContent + " Y: " + document.getElementById("y").textContent);
-    callOrderService(document.getElementById("x").textContent, document.getElementById("y").textContent)
+    confirmed = confirm("Product " + document.getElementById("Product").value + " will be delivered to X: " + document.getElementById("x").textContent + " Y: " + document.getElementById("y").textContent + " with priority " + document.getElementById("Priority").value);
+    console.log(callOrderService());
   }
   
 </script>
@@ -238,6 +184,7 @@ ros.connect('ws://localhost:9090');
   <p>select a Product and the Destination</p>
   
 <body onload="init();">
+
  <div id="statusIndicator">
 <p id="connecting">
 Connecting to rosbridge...
@@ -252,12 +199,9 @@ Error in the backend!
 Connection closed.
 </p>
 </div>
+
 <p style="color:red;" id="output">No Product Selected</p>
 <br/>
-
-<!--canvas id="demoCanvas" width="500" height="200">
-alternate content
-</canvas-->
 
 <select id="Product">
   <option value="Keks">Keks</option>
@@ -267,11 +211,20 @@ alternate content
 </select>
 <br/>
 
+<select id="Priority">
+  <option value=0>Student</option>
+  <option value=1>Mitarbeiter</option>
+  <option value=2>Projektleiter</option>
+  <option value=3>Institutsleitung</option>
+</select>
+<br/>
+
 <button type="button" onclick="confirmProduct()" >Confirm Product</button>
 <h2 style="display:none" id="h2">Select Destination</h2>
 
 <div style="display:block" id="map"></div>
 
+<p id="storePos" style="display:none" ></p>
 
 <p style="color:green">X:<span id="x"></span></p>
 <p style="color:blue">Y:<span id="y"></span></p>
@@ -284,11 +237,6 @@ alternate content
 <p id="w6">w6</p>
 
 </body>
-
-<script>   
-var myImg = document.getElementById("map");
-myImg.onmousedown = GetCoordinates;
-</script>
 
 </html>
 
