@@ -64,7 +64,7 @@ find_package(catkin REQUIRED COMPONENTS
    DIRECTORY 
    action 
    FILES
-   delivery.action
+   Delivery.action
  )
 
 ## Generate added messages and services with any dependencies listed here

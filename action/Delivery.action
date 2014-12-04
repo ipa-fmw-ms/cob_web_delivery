@@ -1,6 +1,6 @@
 #goal
-geometry_msgs/PoseStamped target_pose1
-geometry_msgs/PoseStamped target_pose2
+geometry_msgs/Pose target_pose1
+geometry_msgs/Pose target_pose2
 string item
 ---
 #result
@@ -11,4 +11,4 @@ uint8 state
 #feedback
 #1=goToGood 2=waitForGood 3=Move1 4=Move2 5=waitForReceive
 uint8 state
-geometry_msgs/PoseStamped position
+geometry_msgs/Pose position

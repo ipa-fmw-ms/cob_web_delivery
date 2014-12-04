@@ -39,126 +39,126 @@ document.getElementById('connected').style.display = 'none';
 document.getElementById('closed').style.display = 'inline';
 });
 // Create a connection to the rosbridge WebSocket server.
-ros.connect('ws://localhost:9090');
+ros.connect('ws://ipam:9090');
 
 
   function init() {
 
-    // Create the main viewer.
-    var viewer = new ROS2D.Viewer({
-      divID : 'map',
-      width : 544,
-      height : 768
-    });
-    // Setup the map client.
-    var gridClient = new ROS2D.OccupancyGridClient({
-      ros : ros,
-      rootObject : viewer.scene
-    });
-    gridClient.on('change', function() {
-      viewer.scaleToDimensions(gridClient.currentGrid.width, gridClient.currentGrid.height);
-      viewer.shift(gridClient.currentGrid.pose.position.x, gridClient.currentGrid.pose.position.y);
-    });
-
-    // Callback functions when there is mouse interaction with the polygon
-    var clickedPolygon = false;
-    var selectedPointIndex = null;
-
-    var pointCallBack = function(type, event, index) {
-      if (type === 'mousedown') {
-        if (event.nativeEvent.shiftKey === true) {
-          polygon.remPoint(index);
-        }
-        else {
-          selectedPointIndex = index;
-        }
-      }
-      clickedPolygon = true;
-    };
-
-    var lineCallBack = function(type, event, index) {
-      if (type === 'mousedown') {
-        if (event.nativeEvent.ctrlKey === true) {
-          polygon.splitLine(index);
-        }
-      }
-      clickedPolygon = true;
-    }
-
-    // Create the polygon
-    var polygon = new ROS2D.PolygonMarker({
-      lineColor : createjs.Graphics.getRGB(100, 100, 255,1),
-      pointCallBack : pointCallBack,
-      lineCallBack : lineCallBack,
-      lineSize : 0.2,
-      pointSize : 0.5
-    });
+      // Create the main viewer.
+      var viewer = new ROS2D.Viewer({
+        divID : 'map',
+        width : 544,
+        height : 768
+      });
+      // Setup the map client.
+      var gridClient = new ROS2D.OccupancyGridClient({
+        ros : ros,
+        rootObject : viewer.scene
+      });
+      gridClient.on('change', function() {
+        viewer.scaleToDimensions(gridClient.currentGrid.width, gridClient.currentGrid.height);
+        viewer.shift(gridClient.currentGrid.pose.position.x, gridClient.currentGrid.pose.position.y);
+      });
   
-    // Add the polygon to the viewer
-    viewer.scene.addChild(polygon);
-
-    // Event listeners for mouse interaction with the stage
-    viewer.scene.mouseMoveOutside = false; // doesn't seem to work
-
-    viewer.scene.addEventListener('stagemousemove', function(event) {
-      // Move point when it's dragged
-      if (selectedPointIndex !== null) {
-        var pos = viewer.scene.globalToRos(event.stageX, event.stageY);
-        polygon.movePoint(selectedPointIndex, pos);
-      }
-    });
+      // Callback functions when there is mouse interaction with the polygon
+      var clickedPolygon = false;
+      var selectedPointIndex = null;
   
-    viewer.scene.addEventListener('stagemouseup', function(event) {
-      // Add point when not clicked on the polygon
-      if (selectedPointIndex !== null) {
-        selectedPointIndex = null;
+      var pointCallBack = function(type, event, index) {
+        if (type === 'mousedown') {
+          if (event.nativeEvent.shiftKey === true) {
+            polygon.remPoint(index);
+          }
+          else {
+            selectedPointIndex = index;
+          }
+        }
+        clickedPolygon = true;
+      };
+  
+      var lineCallBack = function(type, event, index) {
+        if (type === 'mousedown') {
+          if (event.nativeEvent.ctrlKey === true) {
+            polygon.splitLine(index);
+          }
+        }
+        clickedPolygon = true;
       }
-      else if (viewer.scene.mouseInBounds === true && clickedPolygon === false) {
-        var pos = viewer.scene.globalToRos(event.stageX, event.stageY);
-        polygon.addPoint(pos);
-        console.log(pos);
-        document.getElementById("x").innerHTML = pos.x
-        document.getElementById("storePos").value = pos //Better Place
-        document.getElementById("y").innerHTML = pos.y
-      }
-      clickedPolygon = false;
-    });
+  
+      // Create the polygon
+      var polygon = new ROS2D.PolygonMarker({
+        lineColor : createjs.Graphics.getRGB(100, 100, 255,1),
+        pointCallBack : pointCallBack,
+        lineCallBack : lineCallBack,
+        lineSize : 0.2,
+        pointSize : 0.5
+      });
+    
+      // Add the polygon to the viewer
+      viewer.scene.addChild(polygon);
+  
+      // Event listeners for mouse interaction with the stage
+      viewer.scene.mouseMoveOutside = false; // doesn't seem to work
+  
+      viewer.scene.addEventListener('stagemousemove', function(event) {
+        // Move point when it's dragged
+        if (selectedPointIndex !== null) {
+          var pos = viewer.scene.globalToRos(event.stageX, event.stageY);
+          polygon.movePoint(selectedPointIndex, pos);
+        }
+      });
+    
+      viewer.scene.addEventListener('stagemouseup', function(event) {
+        // Add point when not clicked on the polygon
+        if (selectedPointIndex !== null) {
+          selectedPointIndex = null;
+        }
+        else if (viewer.scene.mouseInBounds === true && clickedPolygon === false) {
+          var pos = viewer.scene.globalToRos(event.stageX, event.stageY);
+          polygon.addPoint(pos);
+          console.log(pos);
+          document.getElementById("x").innerHTML = pos.x
+          document.getElementById("storePos").value = pos //Better Place
+          document.getElementById("y").innerHTML = pos.y
+        }
+        clickedPolygon = false;
+      });
 
   }//end init TODO:intendations
   
   
   function callOrderService(){
-  var q1 = new ROSLIB.Quaternion({ 
-    x : 0.1,
-    y : 0.2,
-    z : 0.3,
-    w : 0.4
-  });
-  var p = new ROSLIB.Pose({
-    position : document.getElementById("storePos").value,
-    orientation : q1
-  });
-  console.log(p);
+    var q1 = new ROSLIB.Quaternion({ 
+      x : 0.1,
+      y : 0.2,
+      z : 0.3,
+      w : 0.4
+    });
+    var p = new ROSLIB.Pose({
+      position : document.getElementById("storePos").value,
+      orientation : q1
+    });
+    console.log(p);
+    
+    var orderQueClient = new ROSLIB.Service({
+      ros : ros,
+      name : '/order_que',
+      serviceType : 'cob_web_delivery/OrderQue'
+    });
   
-  var orderQueClient = new ROSLIB.Service({
-    ros : ros,
-    name : '/order_que',
-    serviceType : 'cob_web_delivery/OrderQue'
-  });
-
-  var request = new ROSLIB.ServiceRequest({
-    target_pose1 : p,
-    target_pose2 : p,
-    item : document.getElementById("Product").value,
-    priority : parseInt(document.getElementById("Priority").value)
-  });
-  console.log(request);
-  
-  orderQueClient.callService(request, function(result) {
-    console.log('calling srv');
-    console.log('Result for service call on '+ ': '+ result.accepted);
-    return true;
-  });
+    var request = new ROSLIB.ServiceRequest({
+      target_pose1 : p,
+      target_pose2 : p,
+      item : document.getElementById("Product").value,
+      priority : parseInt(document.getElementById("Priority").value)
+    });
+    console.log(request);
+    
+    orderQueClient.callService(request, function(result) {
+      console.log('calling srv');
+      console.log('Result for service call on '+ ': '+ result.accepted);
+      return true;
+    });
   
   }
   
