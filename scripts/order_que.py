@@ -16,7 +16,7 @@ class QueServer:
     
   def handle_order_que(self, req):
       print "Appending %s with Priority %d and destination x: %F y: %F to Que  "%(req.item, req.priority, req.target_pose1.position.x, req.target_pose1.position.y)
-      rospy.sleep(rospy.Duration.from_sec(2.1))
+      rospy.sleep(rospy.Duration.from_sec(1.0))
       goal = DeliveryGoal()
       goal.target_pose1 = req.target_pose1
       goal.target_pose2 = req.target_pose2

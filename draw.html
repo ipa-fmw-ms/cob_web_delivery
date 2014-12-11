@@ -39,7 +39,7 @@ document.getElementById('connected').style.display = 'none';
 document.getElementById('closed').style.display = 'inline';
 });
 // Create a connection to the rosbridge WebSocket server.
-ros.connect('ws://ipam:9090');
+ros.connect('ws://localhost:9090');
 
 
   function init() {
@@ -59,6 +59,15 @@ ros.connect('ws://ipam:9090');
         viewer.scaleToDimensions(gridClient.currentGrid.width, gridClient.currentGrid.height);
         viewer.shift(gridClient.currentGrid.pose.position.x, gridClient.currentGrid.pose.position.y);
       });
+      //TODO: 'setPath'
+      //var pathShape = new ROS2D.PathShape({
+        //ros : ros,
+        ////rootObject : viewer.scene,
+        //path : '/move_base/NavfnROS/plan'
+      //});
+      
+      //pathShape.on('change', function() {
+        //pathShape.on(
   
       // Callback functions when there is mouse interaction with the polygon
       var clickedPolygon = false;
