@@ -59,16 +59,56 @@ ros.connect('ws://localhost:9090');
         viewer.scaleToDimensions(gridClient.currentGrid.width, gridClient.currentGrid.height);
         viewer.shift(gridClient.currentGrid.pose.position.x, gridClient.currentGrid.pose.position.y);
       });
+ 
+      var traceShape = new ROS2D.TraceShape({
+    	  strokeSize : 0.1,
+    	  strokeColor : createjs.Graphics.getRGB(0, 255, 0,0)
+        });
+        //pose : p2
+      //var p2 = new ROSLIB.Pose({
+        //position : document.getElementById("storePos").value,
+        //orientation : q1
+      //});
+      var listener1 = new ROSLIB.Topic ({
+	    ros : ros,
+	    name : '/move_base/feedback',
+	    messageType : 'move_base_msgs/MoveBaseActionFeedback'
+	  });
+      
+      listener1.subscribe(function(message) {
+        //console.log(message.feedback.base_position.pose);
+        traceShape.addPose(message.feedback.base_position.pose);
+      //pathShape.setPath(listener)
+      	viewer.scene.addChild(traceShape);
+        //listener.unsubscribe();
+	  });
+       
+
+      //cPose.addPose(p2);
+      //console.log(cPose);
+      //viewer.scene.addChild(cPose);
+      //viewer.scene.addChild(cPose);
+
+      
+
       //TODO: 'setPath'
-      var pathShape = new ROS2D.PathShape({
-        ros : ros,
-        ////rootObject : viewer.scene,
-        //path : '/move_base/NavfnROS/plan'
+    var pathShape = new ROS2D.PathShape({
+        strokeSize : 0.1,
+        strokeColor : createjs.Graphics.getRGB(0, 255, 0,0.5),
       });
+	  var listener = new ROSLIB.Topic ({
+	    ros : ros,
+	    name : '/move_base/NavfnROS/plan',
+	    messageType : 'nav_msgs/Path'
+	  });
       
-      //pathShape.setPath('move_base/NavfnROS/plan');
-      
-  
+      listener.subscribe(function(message) {
+        console.log(message);
+        pathShape.setPath(message);
+      //pathShape.setPath(listener)
+        viewer.scene.addChild(pathShape);
+        //listener.unsubscribe();
+  });
       // Callback functions when there is mouse interaction with the polygon
       var clickedPolygon = false;
       var selectedPointIndex = null;
@@ -104,6 +144,7 @@ ros.connect('ws://localhost:9090');
       });
     
       // Add the polygon to the viewer
+      console.log(polygon);
       viewer.scene.addChild(polygon);
   
       // Event listeners for mouse interaction with the stage
@@ -147,7 +188,6 @@ ros.connect('ws://localhost:9090');
       position : document.getElementById("storePos").value,
       orientation : q1
     });
-    console.log(p);
     
     var orderQueClient = new ROSLIB.Service({
       ros : ros,
