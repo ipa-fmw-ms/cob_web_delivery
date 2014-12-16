@@ -59,56 +59,41 @@ ros.connect('ws://localhost:9090');
         viewer.scaleToDimensions(gridClient.currentGrid.width, gridClient.currentGrid.height);
         viewer.shift(gridClient.currentGrid.pose.position.x, gridClient.currentGrid.pose.position.y);
       });
- 
+
+      //Draw actual pose
       var traceShape = new ROS2D.TraceShape({
-    	  strokeSize : 0.1,
-    	  strokeColor : createjs.Graphics.getRGB(0, 255, 0,0)
-        });
-        //pose : p2
-      //var p2 = new ROSLIB.Pose({
-        //position : document.getElementById("storePos").value,
-        //orientation : q1
-      //});
-      var listener1 = new ROSLIB.Topic ({
-	    ros : ros,
-	    name : '/move_base/feedback',
-	    messageType : 'move_base_msgs/MoveBaseActionFeedback'
-	  });
-      
-      listener1.subscribe(function(message) {
-        //console.log(message.feedback.base_position.pose);
-        traceShape.addPose(message.feedback.base_position.pose);
-      //pathShape.setPath(listener)
-      	viewer.scene.addChild(traceShape);
-        //listener.unsubscribe();
-	  });
-       
-
-      //cPose.addPose(p2);
-      //console.log(cPose);
-      //viewer.scene.addChild(cPose);
-      //viewer.scene.addChild(cPose);
-
-      
-
-      //TODO: 'setPath'
-    var pathShape = new ROS2D.PathShape({
         strokeSize : 0.1,
-        strokeColor : createjs.Graphics.getRGB(0, 255, 0,0.5),
+        strokeColor : createjs.Graphics.getRGB(255, 0, 0,1),
+        maxPoses  : 1000
+        });
+      var moveBaseFB = new ROSLIB.Topic ({
+      ros : ros,
+      name : '/move_base/feedback',
+      messageType : 'move_base_msgs/MoveBaseActionFeedback'
       });
-	  var listener = new ROSLIB.Topic ({
-	    ros : ros,
-	    name : '/move_base/NavfnROS/plan',
-	    messageType : 'nav_msgs/Path'
-	  });
+      viewer.scene.addChild(traceShape);
+      moveBaseFB.subscribe(function(message) {
+        traceShape.addPose(message.feedback.base_position.pose);
+        //listener.unsubscribe();
+      });
       
+      //Draw planned path
+      var pathShape = new ROS2D.PathShape({
+          strokeSize : 0.3,
+          strokeColor : createjs.Graphics.getRGB(0, 255, 0,0.5),
+        });
+      var listener = new ROSLIB.Topic ({
+        ros : ros,
+        name : '/move_base/NavfnROS/plan',
+        messageType : 'nav_msgs/Path'
+      });    
+      viewer.scene.addChild(pathShape);
       listener.subscribe(function(message) {
         console.log(message);
         pathShape.setPath(message);
-      //pathShape.setPath(listener)
-        viewer.scene.addChild(pathShape);
         //listener.unsubscribe();
-  });
+      });
+  
       // Callback functions when there is mouse interaction with the polygon
       var clickedPolygon = false;
       var selectedPointIndex = null;
