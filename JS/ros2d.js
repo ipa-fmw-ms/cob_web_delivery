@@ -349,38 +349,38 @@ ROS2D.OccupancyGridSrvClient.prototype.__proto__ = EventEmitter2.prototype;
  *   * pulse (optional) - if the marker should "pulse" over time
  */
 ROS2D.ArrowShape = function(options) {
-	var that = this;
+	//this.that = this;
 	options = options || {};
-	var size = options.size || 10;
-	var strokeSize = options.strokeSize || 3;
-	var strokeColor = options.strokeColor || createjs.Graphics.getRGB(0, 0, 0);
-	var fillColor = options.fillColor || createjs.Graphics.getRGB(255, 0, 0);
-	var pulse = options.pulse;
+	this.size = options.size || 10;
+	this.strokeSize = options.strokeSize || 3;
+	this.strokeColor = options.strokeColor || createjs.Graphics.getRGB(0, 0, 0);
+	this.fillColor = options.fillColor || createjs.Graphics.getRGB(255, 0, 0);
+	this.pulse = options.pulse;
 	
 	// draw the arrow
-	var graphics = new createjs.Graphics();
+	this.graphics = new createjs.Graphics();
+	tgraph = this.graphics;
+  tgraph.setStrokeStyle(this.strokeSize);
+	tgraph.beginStroke(this.strokeColor);
+	this.headLen = this.size / 3.0;
+	this.headWidth = this.headLen * 2.0 / 3.0;
+
+	tgraph.moveTo(0, 0);
+	tgraph.lineTo(this.size-this.headLen, 0);
 	
-	var headLen = size / 3.0;
-	var headWidth = headLen * 2.0 / 3.0;
-	
-	graphics.setStrokeStyle(strokeSize);
-	graphics.beginStroke(strokeColor);
-	graphics.moveTo(0, 0);
-	graphics.lineTo(size-headLen, 0);
-	
-	graphics.beginFill(fillColor);
-	graphics.moveTo(size, 0);
-	graphics.lineTo(size-headLen, headWidth / 2.0);
-	graphics.lineTo(size-headLen, -headWidth / 2.0);
-	graphics.closePath();
-	graphics.endFill();
-	graphics.endStroke();
+	tgraph.beginFill(this.fillColor);
+	tgraph.moveTo(this.size, 0);
+	tgraph.lineTo(this.size-this.headLen, this.headWidth / 2.0);
+	tgraph.lineTo(this.size-this.headLen, -this.headWidth / 2.0);
+	tgraph.closePath();
+	tgraph.endFill();
+	tgraph.endStroke();
 	
 	// create the shape
-	createjs.Shape.call(this, graphics);
+	createjs.Shape.call(this, tgraph);
 	
 	// check if we are pulsing
-	if (pulse) {
+	if (this.pulse) {
 		// have the model "pulse"
 		var growCount = 0;
 		var growing = true;
@@ -396,6 +396,27 @@ ROS2D.ArrowShape = function(options) {
 			}
 		});
 	}
+};
+ROS2D.ArrowShape.prototype.setPose = function(pose) {
+    tgraph = this.graphics;
+		tgraph.clear();
+		tgraph.setStrokeStyle(this.strokeSize);
+		tgraph.beginStroke(this.strokeColor);
+    this.headLen = this.size / 3.0;
+    this.headWidth = this.headLen * 2.0 / 3.0;
+		//this.graphics.moveTo(0, 0);
+    tgraph.moveTo(pose.position.x / this.scaleX, pose.position.y / -this.scaleY);
+
+		tgraph.lineTo((pose.position.x / this.scaleX)+Math.asin(pose.orientation.w), (pose.position.y / -this.scaleY)+Math.acos(pose.orientation.z));
+		//TODO: draw orientation. draw triangle on top
+		tgraph.moveTo(this.size, 0);
+		tgraph.lineTo(this.size-headLen, this.headWidth / 2.0);
+		tgraph.lineTo(this.size-headLen, -(this.headWidth) / 2.0);
+
+		
+		// create the shape
+		//createjs.Shape.call(this.that, this.graphics);		
+		
 };
 ROS2D.ArrowShape.prototype.__proto__ = createjs.Shape.prototype;
 
@@ -463,50 +484,62 @@ ROS2D.Grid.prototype.__proto__ = createjs.Shape.prototype;
  *   * fillColor (optional) - the createjs color for the fill
  *   * pulse (optional) - if the marker should "pulse" over time
  */
-ROS2D.NavigationArrow = function(options) {
-  var that = this;
-  options = options || {};
-  var size = options.size || 10;
-  var strokeSize = options.strokeSize || 3;
-  var strokeColor = options.strokeColor || createjs.Graphics.getRGB(0, 0, 0);
-  var fillColor = options.fillColor || createjs.Graphics.getRGB(255, 0, 0);
-  var pulse = options.pulse;
+//ROS2D.NavigationArrow = function(options) {
+  ////this.that = this;
+  //options = options || {};
+  //this.size = options.size || 10;
+  //this.strokeSize = options.strokeSize || 3;
+  //this.strokeColor = options.strokeColor || createjs.Graphics.getRGB(0, 0, 0);
+  //this.fillColor = options.fillColor || createjs.Graphics.getRGB(255, 0, 0);
+  //this.pulse = options.pulse || false;
 
-  // draw the arrow
-  var graphics = new createjs.Graphics();
-  // line width
-  graphics.setStrokeStyle(strokeSize);
-  graphics.moveTo(-size / 2.0, -size / 2.0);
-  graphics.beginStroke(strokeColor);
-  graphics.beginFill(fillColor);
-  graphics.lineTo(size, 0);
-  graphics.lineTo(-size / 2.0, size / 2.0);
-  graphics.closePath();
-  graphics.endFill();
-  graphics.endStroke();
+  //// draw the arrow
+  //this.graphics = new createjs.Graphics();
+  //// line width
+  //this.graphics.setStrokeStyle(this.strokeSize);
+  //this.graphics.beginStroke(this.strokeColor);
+  //this.graphics.moveTo(-size / 2.0, -size / 2.0);
+  //this.graphics.beginFill(this.fillColor);
+  //this.graphics.lineTo(this.size, 0);
+  //this.graphics.lineTo(-this.size / 2.0, this.size / 2.0);
+  //this.graphics.closePath();
+  //this.graphics.endFill();
+  //this.graphics.endStroke();
 
-  // create the shape
-  createjs.Shape.call(this, graphics);
+  //// create the shape
+  //createjs.Shape.call(this, this.graphics);
   
-  // check if we are pulsing
-  if (pulse) {
-    // have the model "pulse"
-    var growCount = 0;
-    var growing = true;
-    createjs.Ticker.addEventListener('tick', function() {
-      if (growing) {
-        that.scaleX *= 1.035;
-        that.scaleY *= 1.035;
-        growing = (++growCount < 10);
-      } else {
-        that.scaleX /= 1.035;
-        that.scaleY /= 1.035;
-        growing = (--growCount < 0);
-      }
-    });
-  }
-};
-ROS2D.NavigationArrow.prototype.__proto__ = createjs.Shape.prototype;
+  //// check if we are pulsing
+  //if (this.pulse) {
+    //// have the model "pulse"
+    //var growCount = 0;
+    //var growing = true;
+    //createjs.Ticker.addEventListener('tick', function() {
+      //if (growing) {
+        //this.that.scaleX *= 1.035;
+        //this.that.scaleY *= 1.035;
+        //growing = (++growCount < 10);
+      //} else {
+        //this.that.scaleX /= 1.035;
+        //this.that.scaleY /= 1.035;
+        //growing = (--growCount < 0);
+      //}
+    //});
+  //}
+//};
+//ROS2D.NavigationArrow.prototype.setPose = function(pose) {
+		//this.graphics.clear();
+		////this.graphics.moveTo(pose.position.x / this.scaleX, pose.position.y / -this.scaleY);
+		//this.graphics.setStrokeStyle(this.strokeSize);
+		//this.graphics.beginStroke(this.strokeColor);
+		//this.graphics.moveTo(0, 0);
+		//this.graphics.lineTo(this.size-this.headLen, 0);
+		
+		//this.graphics.moveTo(this.size, 0);
+		//this.graphics.lineTo(this.size-headLen, this.headWidth / 2.0);
+		//this.graphics.lineTo(this.size-headLen, -(this.headWidth) / 2.0);
+//};
+//ROS2D.NavigationArrow.prototype.__proto__ = createjs.Shape.prototype;
 
 /**
  * @author Bart van Vliet - bart@dobots.nl

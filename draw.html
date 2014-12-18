@@ -59,12 +59,21 @@ ros.connect('ws://localhost:9090');
         viewer.scaleToDimensions(gridClient.currentGrid.width, gridClient.currentGrid.height);
         viewer.shift(gridClient.currentGrid.pose.position.x, gridClient.currentGrid.pose.position.y);
       });
-
       //Draw actual pose
+      //var arrowShape = new ROS2D.NavigationArrow({
+      var arrowShape = new ROS2D.ArrowShape({
+        size : 0.4,
+        strokeSize : 0.15,
+        strokeColor : createjs.Graphics.getRGB(0, 0, 255, 1),
+        fillColor : createjs.Graphics.getRGB(0, 0, 255, 1),
+        pulse : false
+      });
+      viewer.scene.addChild(arrowShape);
+      //Draw actual trace
       var traceShape = new ROS2D.TraceShape({
         strokeSize : 0.1,
         strokeColor : createjs.Graphics.getRGB(255, 0, 0,1),
-        maxPoses  : 1000
+        maxPoses  : 250
         });
       var moveBaseFB = new ROSLIB.Topic ({
       ros : ros,
@@ -72,8 +81,10 @@ ros.connect('ws://localhost:9090');
       messageType : 'move_base_msgs/MoveBaseActionFeedback'
       });
       viewer.scene.addChild(traceShape);
+      //update on new message
       moveBaseFB.subscribe(function(message) {
         traceShape.addPose(message.feedback.base_position.pose);
+        arrowShape.setPose(message.feedback.base_position.pose);
         //listener.unsubscribe();
       });
       
