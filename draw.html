@@ -161,11 +161,13 @@ ros.connect('ws://localhost:9090');
         }
         else if (viewer.scene.mouseInBounds === true && clickedPolygon === false) {
           var pos = viewer.scene.globalToRos(event.stageX, event.stageY);
+          var pospix = {'x' : event.stageX, 'y' : Math.ceil(event.stageY)}; //Why is Y float | ceil is not for truncating!
           polygon.addPoint(pos);
-          console.log(pos);
-          document.getElementById("x").innerHTML = pos.x
-          document.getElementById("storePos").value = pos //Better Place
-          document.getElementById("y").innerHTML = pos.y
+          console.log(pospix);
+          document.getElementById("x").innerHTML = pos.x;
+          document.getElementById("storePos").value = pos; //Better Place
+          document.getElementById("storePosPix").value = pospix; //Better Place
+          document.getElementById("y").innerHTML = pos.y;
         }
         clickedPolygon = false;
       });
@@ -194,6 +196,7 @@ ros.connect('ws://localhost:9090');
     var request = new ROSLIB.ServiceRequest({
       target_pose1 : p,
       target_pose2 : p,
+      pixels : [document.getElementById("storePosPix").value.x, document.getElementById("storePosPix").value.y],
       item : document.getElementById("Product").value,
       priority : parseInt(document.getElementById("Priority").value)
     });
@@ -270,6 +273,7 @@ Connection closed.
 <div style="display:block" id="map"></div>
 
 <p id="storePos" style="display:none" ></p>
+<p id="storePosPix" style="display:none" ></p>
 
 <p style="color:green">X:<span id="x"></span></p>
 <p style="color:blue">Y:<span id="y"></span></p>
