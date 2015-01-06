@@ -1,8 +1,12 @@
 #Request
 geometry_msgs/Pose target_pose1
 geometry_msgs/Pose target_pose2
+uint32[] pixels
 string item
 uint8 priority
 ---
 #Response
 bool accepted
+string room
+geometry_msgs/Pose room_pose1
+geometry_msgs/Pose room_pose2
