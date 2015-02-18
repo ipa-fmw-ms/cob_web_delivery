@@ -60,15 +60,15 @@ ros.connect('ws://localhost:9090');
         viewer.shift(gridClient.currentGrid.pose.position.x, gridClient.currentGrid.pose.position.y);
       });
       //Draw actual pose
-      //var arrowShape = new ROS2D.NavigationArrow({
-      var arrowShape = new ROS2D.ArrowShape({
-        size : 0.4,
-        strokeSize : 0.15,
-        strokeColor : createjs.Graphics.getRGB(0, 0, 255, 1),
-        fillColor : createjs.Graphics.getRGB(0, 0, 255, 1),
-        pulse : false
-      });
-      viewer.scene.addChild(arrowShape);
+      ////var arrowShape = new ROS2D.NavigationArrow({
+      //var arrowShape = new ROS2D.ArrowShape({
+        //size : 0.4,
+        //strokeSize : 0.15,
+        //strokeColor : createjs.Graphics.getRGB(0, 0, 255, 1),
+        //fillColor : createjs.Graphics.getRGB(0, 0, 255, 1),
+        //pulse : false
+      //});
+      //viewer.scene.addChild(arrowShape);
       //Draw actual trace
       var traceShape = new ROS2D.TraceShape({
         strokeSize : 0.1,
@@ -84,7 +84,7 @@ ros.connect('ws://localhost:9090');
       //update on new message
       moveBaseFB.subscribe(function(message) {
         traceShape.addPose(message.feedback.base_position.pose);
-        arrowShape.setPose(message.feedback.base_position.pose);
+        //arrowShape.setPose(message.feedback.base_position.pose);
         //listener.unsubscribe();
       });
       
@@ -132,7 +132,7 @@ ros.connect('ws://localhost:9090');
   
       // Create the polygon
       var polygon = new ROS2D.PolygonMarker({
-        lineColor : createjs.Graphics.getRGB(100, 100, 255,1),
+        lineColor : createjs.Graphics.getRGB(100, 100, 255,0),
         pointCallBack : pointCallBack,
         lineCallBack : lineCallBack,
         lineSize : 0.2,
@@ -161,8 +161,9 @@ ros.connect('ws://localhost:9090');
         }
         else if (viewer.scene.mouseInBounds === true && clickedPolygon === false) {
           var pos = viewer.scene.globalToRos(event.stageX, event.stageY);
-          var pospix = {'x' : event.stageX, 'y' : Math.ceil(event.stageY)}; //Why is Y float | ceil is not for truncating!
-          polygon.addPoint(pos);
+          var pospix = {'x' : event.stageX, 'y' : Math.ceil(event.stageY)}; //Why is Y float | ceil is not for truncating!          
+          polygon.remPoint(0);
+          polygon.addPoint(pos);//SLOW just draw points
           console.log(pospix);
           document.getElementById("x").innerHTML = pos.x;
           document.getElementById("storePos").value = pos; //Better Place
