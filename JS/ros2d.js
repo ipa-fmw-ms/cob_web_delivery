@@ -349,7 +349,7 @@ ROS2D.OccupancyGridSrvClient.prototype.__proto__ = EventEmitter2.prototype;
  *   * pulse (optional) - if the marker should "pulse" over time
  */
 ROS2D.ArrowShape = function(options) {
-	//this.that = this;
+	var that = this;
 	options = options || {};
 	this.size = options.size || 10;
 	this.strokeSize = options.strokeSize || 3;
@@ -360,7 +360,7 @@ ROS2D.ArrowShape = function(options) {
 	// draw the arrow
 	this.graphics = new createjs.Graphics();
 	tgraph = this.graphics;
-  tgraph.setStrokeStyle(this.strokeSize);
+  	tgraph.setStrokeStyle(this.strokeSize);
 	tgraph.beginStroke(this.strokeColor);
 	this.headLen = this.size / 3.0;
 	this.headWidth = this.headLen * 2.0 / 3.0;
