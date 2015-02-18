@@ -22,7 +22,10 @@ class QueServer:
       if room_id == (0 or 255):
         accepted = False
       target = self.get_destinations(room_id=room_id)
-      print target
+      target[0]
+      req.target_pose1.position.x = target[0]
+      req.target_pose1.position.y= target[1]
+
       print "Appending %s with Priority %d and destination x: %F y: %F to Que  "%(req.item, req.priority, req.target_pose1.position.x, req.target_pose1.position.y)
       goal = DeliveryGoal()
       goal.target_pose1 = req.target_pose1
