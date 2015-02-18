@@ -1,8 +1,12 @@
 <?xml version="1.0"?>
 <launch>
-
+    
         <!-- startup simulated robot -->
         <include file="$(find cob_bringup_sim)/launch/robot.launch" />
+        
+        <!-- load segmented map and destinations -->
+        <rosparam command="load" file="$(find cob_web_delivery)/destinations.yaml" param="destinations"/>
+        <rosparam command="load" file="$(find cob_web_delivery)/segmented_map.yaml" param="segs"/>
         
         <!-- startup websocket -->
         <include file="$(find rosbridge_server)/launch/rosbridge_websocket.launch" />
@@ -11,7 +15,7 @@
         <!-- startup navigation -->
         <include file="$(find cob_navigation_global)/launch/2dnav_ros_dwa.launch" />
         
-        <!-- startup navigation -->
+        <!-- startup rviz -->
         <node pkg="rviz" type="rviz" name="$(anon rviz)" args="-d $(find cob_web_delivery)/nav.rviz" respawn="false" output="screen" />
         
 </launch>
