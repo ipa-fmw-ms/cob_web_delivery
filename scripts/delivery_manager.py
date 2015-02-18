@@ -20,7 +20,7 @@ class DeliveryServer:
     print "Connecting to move_base ActionServer"
     self.mbac = actionlib.SimpleActionClient('move_base', MoveBaseAction)
     self.mbac.wait_for_server()
-    print "Connected to MoveBAse"
+    print "Connected to MoveBase"
 
 
   def execute(self, goal):
