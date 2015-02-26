@@ -13,18 +13,20 @@ class QueServer:
     print "Waiting for delivery Actions Sevrer"
     self.ac.wait_for_server()
     print "Waiting for segmentation data"
-    self.mapsegs = rospy.get_param('segs') #try wait
-    self.destinations = rospy.get_param('destinations')
+    self.parameters = rospy.get_param('web_order') #try wait
     print "Ready to Accept Orders"
     
   def handle_order_que(self, req):
-      room_id = self.get_room(pixels=req.pixels, mapsegs=self.mapsegs)
+      room_id = self.get_room(pixels=req.pixels, mapsegs=self.parameters["segs"])
       if room_id == (0 or 255):
         accepted = False
-      target = self.get_destinations(room_id=room_id)
-      target[0]
-      req.target_pose1.position.x = target[0]
+        self.ac.get_result().Error = "Invalid Selection"
+      pickup = self.get_param_by_id(param="pickup_positions",param_id=req.item)
+      target = self.get_param_by_id(param="destinations",param_id=room_id)
+      req.target_pose1.position.x = target[0] #pose1= destination pose2=pickup, not in req anyway
       req.target_pose1.position.y= target[1]
+      req.target_pose2.position.x = pickup[0]
+      req.target_pose2.position.y= pickup[1]
 
       print "Appending %s with Priority %d and destination x: %F y: %F to Que  "%(req.item, req.priority, req.target_pose1.position.x, req.target_pose1.position.y)
       goal = DeliveryGoal()
@@ -40,9 +42,11 @@ class QueServer:
       pixfield = mapsegs["width"]*(pixels[1]-1)+(pixels[0]-1)
       return mapsegs["data"][pixfield]
 
-  def get_destinations(self, room_id):
-      return self.destinations["room_position_dict"][str(room_id)]
-
+  def get_param_by_id(self, param, param_id):
+      #try:
+        return self.parameters[param][str(param_id)]
+      #except: print "Product not found"
+      
 if __name__ == "__main__":
     rospy.init_node('order_que')
     server = QueServer()
