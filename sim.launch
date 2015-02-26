@@ -5,9 +5,9 @@
         <include file="$(find cob_bringup_sim)/launch/robot.launch" />
         
         <!-- load segmented map and positions delays bringup for 30seconds-->
-        <rosparam command="load" file="$(find cob_web_delivery)/destinations.yaml" param="destinations" ns="web_order"/>
+        <rosparam command="load" file="$(find cob_web_delivery)/destinations.yaml" ns="web_order"/>
         <rosparam command="load" file="$(find cob_web_delivery)/segmented_map.yaml" param="segs" ns="web_order"/>
-        <rosparam command="load" file="$(find cob_web_delivery)/pickup_positions.yaml" param="pickup_positions" ns="web_order"/>
+        <rosparam command="load" file="$(find cob_web_delivery)/pickup_positions.yaml" ns="web_order"/>
         
         <!-- startup websocket -->
         <include file="$(find rosbridge_server)/launch/rosbridge_websocket.launch" />
