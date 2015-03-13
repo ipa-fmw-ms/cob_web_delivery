@@ -30,6 +30,7 @@ class QueServer:
         req.target_pose1.position.y = target[1]
         req.target_pose2.position.x = pickup[0]
         req.target_pose2.position.y = pickup[1]
+        #Todo: append clicked pose
 
         print "Appending %s with Priority %d and destination x: %F y: %F to Que  " % (
             req.item, req.priority, req.target_pose1.position.x, req.target_pose1.position.y)
@@ -41,6 +42,9 @@ class QueServer:
         accepted = self.ac.wait_for_result()
         print "Action Returned Error: %s in state: %d " % (self.ac.get_result().Error, self.ac.get_result().state)
         return OrderQueResponse(accepted, "Room 1", req.target_pose1, req.target_pose2)
+
+    def send_order(self, pickup, target):
+        pass
 
     def get_room(self, pixels, mapsegs):
         pixfield = mapsegs["width"] * (pixels[1] - 1) + (pixels[0] - 1)

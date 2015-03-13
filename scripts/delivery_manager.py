@@ -42,21 +42,20 @@ class DeliveryServer:
     bgoal.target_pose.header.stamp = rospy.Time.now()
     bgoal.target_pose.pose.position = goal.target_pose2.position
     bgoal.target_pose.pose.orientation.w = 1.0
-    print "pick"
-    print goal.target_pose2.position
+    print "pick:" + goal.target_pose2.position
     self.mbac.send_goal(bgoal)
 
     # wait 4 feedback
     #self.wait_fb()
     rospy.sleep(rospy.Duration.from_sec(1.0))
-    #goto delivery (p1)
+
+    #goto destination (p1)
     bgoal = MoveBaseGoal()
     bgoal.target_pose.header.frame_id = "map"
     bgoal.target_pose.header.stamp = rospy.Time.now()
     bgoal.target_pose.pose.position = goal.target_pose1.position
     bgoal.target_pose.pose.orientation.w = 1.0
-    print "deliver"
-    print goal.target_pose1.position
+    print "destination:" + goal.target_pose1.position
     self.mbac.send_goal(bgoal)
 
     #wait 4 FB
