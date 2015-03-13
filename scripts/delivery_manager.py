@@ -14,16 +14,18 @@ class DeliveryServer:
   _result   = DeliveryResult()
   
   def __init__(self):
+    rospy.on_shutdown(self.shutdown)
     print "Starting delivery Server"
     self.server = actionlib.SimpleActionServer('delivery', DeliveryAction, self.execute, False)
     self.server.start()
     rospy.Subscriber("FB_phidget", DigitalSensor, self.feedback_cb)
-    self.button = False
     print "Delivery Server started"
     print "Connecting to move_base ActionServer"
     self.mbac = actionlib.SimpleActionClient('move_base', MoveBaseAction)
     self.mbac.wait_for_server()
     print "Connected to MoveBase"
+
+    self.button = False #not here
 
 
   def execute(self, goal):
@@ -66,20 +68,25 @@ class DeliveryServer:
     print "Action done"
     
   def feedback_cb(self, data):
-        print data
+        print data.state
+        print data.uri
         self.button = True
     
   def wait_fb(self):
         while not self.button:
-            rospy.sleep(rospy.Duration.from_sec(0.5))
+            rospy.sleep(rospy.Duration.from_sec(0.5))#better
         self.button = False
         return True
         
-    
-
+  def shutdown(self):
+      print "\n shutdown delivery manager"
+      self.mbac.cancel_all_goals()
+      self.server.set_aborted()
 
 if __name__ == '__main__':
   rospy.init_node('delivery_server')
   server = DeliveryServer()
   print "Ready to Serve"
   rospy.spin()
+  
+

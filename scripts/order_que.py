@@ -8,7 +8,8 @@ import actionlib
 
 class QueServer:
   def __init__(self):
-    s = rospy.Service('order_que', OrderQue, self.handle_order_que)
+    rospy.on_shutdown(self.shutdown)
+    self.s = rospy.Service('order_que', OrderQue, self.handle_order_que)
     self.ac = actionlib.SimpleActionClient('delivery', DeliveryAction)
     print "Waiting for delivery Actions Sevrer"
     self.ac.wait_for_server()
@@ -47,7 +48,14 @@ class QueServer:
         return self.parameters[param][str(param_id)]
       #except: print "Product not found"
       
+  def shutdown(self):
+      print "\n shutdown order que"
+      self.ac.cancel_all_goals
+      self.s.shutdown()
+      
+      
 if __name__ == "__main__":
     rospy.init_node('order_que')
     server = QueServer()
     rospy.spin()
+
