@@ -1,6 +1,6 @@
 #Request
 geometry_msgs/Pose clicked_pose
-uint32[] pixels
+uint32[2] pixels
 string item
 uint8 priority
 ---
