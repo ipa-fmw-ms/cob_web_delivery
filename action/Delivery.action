@@ -1,6 +1,6 @@
 #goal
-geometry_msgs/Pose target_pose1
-geometry_msgs/Pose target_pose2
+geometry_msgs/Pose[] pickup_poses
+geometry_msgs/Pose[] destinations
 string item
 ---
 #result
