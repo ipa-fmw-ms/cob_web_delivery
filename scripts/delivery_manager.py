@@ -8,11 +8,12 @@ from cob_phidgets.msg import DigitalSensor
 import rospy
 import actionlib
 
+
 class DeliveryServer:
-  # create messages that are used to publish feedback/result
+   # create messages that are used to publish feedback/result
   _feedback = DeliveryFeedback()
-  _result   = DeliveryResult()
-  
+  _result = DeliveryResult()
+
   def __init__(self):
     rospy.on_shutdown(self.shutdown)
     print "Starting delivery Server"
@@ -25,17 +26,17 @@ class DeliveryServer:
     self.mbac.wait_for_server()
     print "Connected to MoveBase"
 
-    self.button = False #not here
+    self.button = False  # not here
 
 
   def execute(self, goal):
-    print "Got request for %s"%(goal.item)
+    print "Got request for %s" % (goal.item)
     rospy.sleep(rospy.Duration.from_sec(1.0))
     self._feedback.state = 2
     self.server.publish_feedback(self._feedback)
     rospy.sleep(rospy.Duration.from_sec(1.0))
-    
-    #goto pickup (p2)
+
+    # goto pickup (p2)
     bgoal = MoveBaseGoal()
     bgoal.target_pose.header.frame_id = "map"
     bgoal.target_pose.header.stamp = rospy.Time.now()
@@ -45,7 +46,7 @@ class DeliveryServer:
     print goal.target_pose2.position
     self.mbac.send_goal(bgoal)
 
-    #wait 4 feedback
+    # wait 4 feedback
     #self.wait_fb()
     rospy.sleep(rospy.Duration.from_sec(1.0))
     #goto delivery (p1)
@@ -57,7 +58,7 @@ class DeliveryServer:
     print "deliver"
     print goal.target_pose1.position
     self.mbac.send_goal(bgoal)
-    
+
     #wait 4 FB
     self.wait_fb()
 
@@ -66,22 +67,23 @@ class DeliveryServer:
     self._result.state = 1
     self.server.set_succeeded(self._result)
     print "Action done"
-    
+
   def feedback_cb(self, data):
         print data.state
         print data.uri
         self.button = True
-    
+
   def wait_fb(self):
         while not self.button:
-            rospy.sleep(rospy.Duration.from_sec(0.5))#better
+            rospy.sleep(rospy.Duration.from_sec(0.5))  # better
         self.button = False
         return True
-        
+
   def shutdown(self):
-      print "\n shutdown delivery manager"
-      self.mbac.cancel_all_goals()
-      self.server.set_aborted()
+    print "\n shutdown delivery manager"
+    self.mbac.cancel_all_goals()
+    self.server.set_aborted()
+
 
 if __name__ == '__main__':
   rospy.init_node('delivery_server')
