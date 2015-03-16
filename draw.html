@@ -195,8 +195,7 @@ ros.connect('ws://localhost:9090');
     });
   
     var request = new ROSLIB.ServiceRequest({
-      target_pose1 : p,
-      target_pose2 : p,
+      clicked_pose : p,
       pixels : [document.getElementById("storePosPix").value.x, document.getElementById("storePosPix").value.y],
       item : document.getElementById("Product").value,
       priority : parseInt(document.getElementById("Priority").value)

@@ -26,25 +26,22 @@ class QueServer:
             self.ac.get_result().Error = "Invalid Selection"
         pickup = self.get_param_by_id(param="pickup_positions", param_id=req.item)
         target = self.get_param_by_id(param="destinations", param_id=room_id)
-        req.target_pose1.position.x = target[0]  # pose1= destination pose2=pickup, not in req anyway
-        req.target_pose1.position.y = target[1]
-        req.target_pose2.position.x = pickup[0]
-        req.target_pose2.position.y = pickup[1]
         #Todo: append clicked pose
-
+        print target
         print "Appending %s with Priority %d and destination x: %F y: %F to Que  " % (
-            req.item, req.priority, req.target_pose1.position.x, req.target_pose1.position.y)
+            req.item, req.priority, target[0][0], target[0][1])
         goal = DeliveryGoal()
-        goal.target_pose1 = req.target_pose1
-        goal.target_pose2 = req.target_pose2
+        temp_poses = OrderQueResponse() #non list poses only available from Response
+        temp_poses.room_pose1.position.x = target[0][0] #two postions
+        temp_poses.room_pose1.position.y = target[0][1]
+        goal.pickup_poses.append(temp_poses.room_pose1)
+        temp_poses.room_pose2.position.x = pickup[1] #single position TODO: get amount of positions for different cases
+        temp_poses.room_pose2.position.y = pickup[0]
+        goal.destinations.append(temp_poses.room_pose1)
         goal.item = req.item
         self.ac.send_goal(goal)  # feedbackCB in here?
         accepted = self.ac.wait_for_result()
         print "Action Returned Error: %s in state: %d " % (self.ac.get_result().Error, self.ac.get_result().state)
-        return OrderQueResponse(accepted, "Room 1", req.target_pose1, req.target_pose2)
-
-    def send_order(self, pickup, target):
-        pass
 
     def get_room(self, pixels, mapsegs):
         pixfield = mapsegs["width"] * (pixels[1] - 1) + (pixels[0] - 1)

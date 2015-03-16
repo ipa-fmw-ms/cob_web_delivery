@@ -40,9 +40,9 @@ class DeliveryServer:
     bgoal = MoveBaseGoal()
     bgoal.target_pose.header.frame_id = "map"
     bgoal.target_pose.header.stamp = rospy.Time.now()
-    bgoal.target_pose.pose.position = goal.target_pose2.position
+    bgoal.target_pose.pose.position = goal.pickup_poses[0].position
     bgoal.target_pose.pose.orientation.w = 1.0
-    print "pick:" + goal.target_pose2.position
+    print "pick:", goal.pickup_poses[0].position
     self.mbac.send_goal(bgoal)
 
     # wait 4 feedback
@@ -53,9 +53,9 @@ class DeliveryServer:
     bgoal = MoveBaseGoal()
     bgoal.target_pose.header.frame_id = "map"
     bgoal.target_pose.header.stamp = rospy.Time.now()
-    bgoal.target_pose.pose.position = goal.target_pose1.position
+    bgoal.target_pose.pose.position = goal.destinations[0].position
     bgoal.target_pose.pose.orientation.w = 1.0
-    print "destination:" + goal.target_pose1.position
+    print "destination:", goal.destinations[0].position
     self.mbac.send_goal(bgoal)
 
     #wait 4 FB
@@ -82,6 +82,7 @@ class DeliveryServer:
     print "\n shutdown delivery manager"
     self.mbac.cancel_all_goals()
     self.server.set_aborted()
+    #todo publish aborted state
 
 
 if __name__ == '__main__':
