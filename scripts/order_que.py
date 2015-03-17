@@ -2,6 +2,7 @@
 
 from cob_web_delivery.srv import *
 from cob_web_delivery.msg import *
+from geometry_msgs.msg import Pose, Pose2D, Point, Quaternion, Twist
 
 import rospy
 import actionlib
@@ -24,24 +25,40 @@ class QueServer:
             accepted = False
             print "invalid destination"
             self.ac.get_result().Error = "Invalid Selection"
-        pickup = self.get_param_by_id(param="pickup_positions", param_id=req.item)
-        target = self.get_param_by_id(param="destinations", param_id=room_id)
-        #Todo: append clicked pose
-        print target
+        pickups = self.assign_poses(self.get_param_by_id(param="pickup_positions", param_id=req.item))
+        print "pickup assign", pickups
+        targets = self.get_param_by_id(param="destinations", param_id=room_id)
+        # Todo: append clicked pose
+
         print "Appending %s with Priority %d and destination x: %F y: %F to Que  " % (
-            req.item, req.priority, target[0][0], target[0][1])
+            req.item, req.priority, targets[0][0], targets[0][1])
+
         goal = DeliveryGoal()
-        temp_poses = OrderQueResponse() #non list poses only available from Response
-        temp_poses.room_pose1.position.x = target[0][0] #two postions
-        temp_poses.room_pose1.position.y = target[0][1]
-        goal.pickup_poses.append(temp_poses.room_pose1)
-        temp_poses.room_pose2.position.x = pickup[1] #single position TODO: get amount of positions for different cases
-        temp_poses.room_pose2.position.y = pickup[0]
-        goal.destinations.append(temp_poses.room_pose1)
+        test = dict(zip(['x', 'y', 'theta'], targets[0]))
+
+        temp_poses = Pose2D(**test)
+        goal.pickup_poses.append(temp_poses)
+
+        #temp_poses.position.x = pickups[1]  #single position TODO: get amount of positions for different cases
+        #temp_poses.position.y = pickups[0]
+
+        goal.destinations.append(temp_poses)
         goal.item = req.item
         self.ac.send_goal(goal)  # feedbackCB in here?
         accepted = self.ac.wait_for_result()
         print "Action Returned Error: %s in state: %d " % (self.ac.get_result().Error, self.ac.get_result().state)
+
+    def assign_poses(self, pose_list):
+
+        if isinstance(pose_list[0], float):
+            return Pose2D(**dict(zip(['x', 'y', 'theta'], pose_list)))
+        else:
+            for i in len(pose_list):
+                Pose2D(**dict(zip(['x', 'y', 'theta'], pose_list[i])))
+            #Todo: append where?
+
+
+
 
     def get_room(self, pixels, mapsegs):
         pixfield = mapsegs["width"] * (pixels[1] - 1) + (pixels[0] - 1)
