@@ -7,5 +7,5 @@ uint8 priority
 #Response
 bool accepted
 string room
-geometry_msgs/Pose room_pose1
-geometry_msgs/Pose room_pose2
+geometry_msgs/Pose2D room_pose1
+geometry_msgs/Pose2D room_pose2

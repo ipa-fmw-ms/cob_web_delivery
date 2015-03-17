@@ -1,6 +1,6 @@
 #goal
-geometry_msgs/Pose[] pickup_poses
-geometry_msgs/Pose[] destinations
+geometry_msgs/Pose2D[] pickup_poses
+geometry_msgs/Pose2D[] destinations
 string item
 ---
 #result
@@ -11,4 +11,4 @@ uint8 state
 #feedback
 #1=goToGood 2=waitForGood 3=Move1 4=Move2 5=waitForReceive
 uint8 state
-geometry_msgs/Pose position
+geometry_msgs/Pose2D position
