@@ -43,17 +43,20 @@ class DeliveryServer:
     # goto pickup
     bgoal = MoveBaseGoal()
     bgoal.target_pose = self.pose2d_to_spose(goal.pickup_poses[0])
-    print "getting good", bgoal
+    print "getting good from: ", bgoal.target_pose.pose.position.x, bgoal.target_pose.pose.position.y
     self.mbac.send_goal(bgoal)
     print "wait for arrival at pickup"
-    self.mbac.wait_for_result(rospy.Duration.from_sec(10.0))
+    reached = self.mbac.wait_for_result(rospy.Duration.from_sec(10.0))
+    print "base feedback: ", reached
+    print self.mbac.get_result(bgoal)
     print "waiting for product"
     self.wait_fb(0)
-    print "delivering good", bgoal
     bgoal.target_pose = self.pose2d_to_spose(goal.destinations[0])
     self.mbac.send_goal(bgoal)
+    print "delivering good to: ", bgoal.target_pose.pose.position.x, bgoal.target_pose.pose.position.y
     print "wait for arrival at destination"
-    self.mbac.wait_for_result(rospy.Duration.from_sec(10.0))
+    reached = self.mbac.wait_for_result(rospy.Duration.from_sec(120.0))
+    print "base feedback: ", reached
     print "waiting for customer"
     self.wait_fb(0)
     print "delivery successful"
@@ -89,10 +92,14 @@ class DeliveryServer:
   def shutdown(self):
     print "\n shutdown delivery manager"
     self.mbac.cancel_all_goals()
+    self.deliver_as.need_to_terminate = True
     #self.deliver_as.set_aborted()
     if self.deliver_as.is_active():
-        self.deliver_as.set_preempted(self, text='failed')
         self._feedback.state = 6
+        self._result.success = False
+        self._result.Error = "Node Killed"
+        self._result.state = 6
+        self.deliver_as.set_preempted(self._result, 'Node got killed')
     #todo publish aborted state
 
 
