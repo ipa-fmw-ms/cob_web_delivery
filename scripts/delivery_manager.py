@@ -29,8 +29,8 @@ class DeliveryServer:
     self.mbac.wait_for_server()
     print "Connected to MoveBase"
 
-    self.button = False  # not here
-
+    self.wait_button_fb = False  # not here
+    self.wait_button = -1  # not here
 
   def execute(self, goal):
     print "Got request for %s" % (goal.item)
@@ -45,24 +45,25 @@ class DeliveryServer:
     bgoal.target_pose = self.pose2d_to_spose(goal.pickup_poses[0])
     print "getting good", bgoal
     self.mbac.send_goal(bgoal)
-
-    # wait 4 feedback
-    #self.wait_fb()
-    rospy.sleep(rospy.Duration.from_sec(1.0))
+    print "wait for arrival at pickup"
+    self.mbac.wait_for_result(rospy.Duration.from_sec(10.0))
+    print "waiting for product"
+    self.wait_fb(0)
     print "delivering good", bgoal
-    #goto destination
     bgoal.target_pose = self.pose2d_to_spose(goal.destinations[0])
     self.mbac.send_goal(bgoal)
-
-    #wait 4 FB
-    self.wait_fb()
+    print "wait for arrival at destination"
+    self.mbac.wait_for_result(rospy.Duration.from_sec(10.0))
+    print "waiting for customer"
+    self.wait_fb(0)
+    print "delivery successful"
     self._result.success = True
     self._result.Error = "Arrived"
     self._result.state = 1
     self.deliver_as.set_succeeded(self._result)
     print "Action done"
 
-  def pose2d_to_spose(selfself, pose2d):
+  def pose2d_to_spose(self, pose2d):
       spose = PoseStamped()
       spose.header.frame_id = "map"
       spose.header.stamp = rospy.Time.now()
@@ -73,15 +74,16 @@ class DeliveryServer:
       return spose
 
   def phidget_fb_cb(self, data):
-        print data.state
-        print data.uri
-        #self._feedback.position=self.mbac.
-        self.button = True
+        if (self.wait_button >= 0): #only one wait at a time possible
+            if data.state[self.wait_button]:
+                self.wait_button_fb = True
 
-  def wait_fb(self):
-        while not self.button:
+  def wait_fb(self, button):
+        self.wait_button_fb = False
+        self.wait_button = button
+        while not self.wait_button_fb:
             rospy.sleep(rospy.Duration.from_sec(0.5))  # better
-        self.button = False
+        self.wait_button = -1
         return True
 
   def shutdown(self):
