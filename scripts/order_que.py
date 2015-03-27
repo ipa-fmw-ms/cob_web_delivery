@@ -40,7 +40,8 @@ class QueServer:
         self.ac.send_goal(goal)  # feedbackCB in here?
 
         accepted = self.ac.wait_for_result()
-        print "Action Returned Error: %s in state: %d " % (self.ac.get_result().Error, self.ac.get_result().state)
+        #print "Action Returned Error: %s in state: %d " % (self.ac.get_result().Error, self.ac.get_result().state)
+        print "action returned", self.ac.get_result()
 
     def assign_poses(self, pose_list):
         array = []
