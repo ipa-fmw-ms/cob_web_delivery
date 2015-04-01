@@ -31,17 +31,18 @@ class DeliveryServer:
         self.wait_button_fb = False  # not here
         self.wait_button = -1  # not here
 
-    def execute(self, goal):
+    def execute(self, goal): #todo smach
         print "Got request for %s" % (goal.item)
         self._feedback.state = 0
         self.deliver_as.publish_feedback(self._feedback)
         self.move_base_multiple(goal.pickup_poses)
         print "waiting for product"
-        self.wait_fb(0)
+        self.wait_fb(0, 7)
+        print "got product"
         self.move_base_multiple(goal.destinations)
         print "waiting for customer"
-        self.wait_fb(0)
-        print "delivery successful"
+        self.wait_fb(0, 7)
+        print "delivery successful" #RtH?
         self._result.success = True
         self._result.Error = "Arrived"
         self._result.state = 1
@@ -51,15 +52,18 @@ class DeliveryServer:
     def move_base_multiple(self, pose_array):
         bgoal = MoveBaseGoal()
         for pose in pose_array:
-            bgoal.target_pose = self.pose2d_to_spose(pose)  # todo: check and go to next position, if unreachable
-            print "moving to position pose: ",  bgoal.target_pose.pose.position.x, bgoal.target_pose.pose.position.y, bgoal.target_pose.pose.position.theta
+            bgoal.target_pose = self.pose2d_to_spose(pose)
+            #print "moving to position pose: ",  bgoal.target_pose.pose.position.x, bgoal.target_pose.pose.position.y, bgoal.target_pose.pose.position.theta
             self.mbac.send_goal(bgoal)
             reached = self.mbac.wait_for_result(rospy.Duration.from_sec(10.0))
             if reached:
+                print "reached "
+                print pose
                 return True
-            print "failed"
+            print "failed moving to "
+            print pose
             #rospy.WARN("unreachable")
-        print "completely failed"
+        print "completely failed. mbac returned:"
         print self.mbac.get_result()
         return False
 
@@ -80,12 +84,16 @@ class DeliveryServer:
             if data.state[self.wait_button]:
                 self.wait_button_fb = True
 
-    def wait_fb(self, button):
+    def wait_fb(self, button, timeout):
         self.wait_button_fb = False
         self.wait_button = button
+        endtime = rospy.Time.now() + rospy.Duration(timeout)
         while not self.wait_button_fb:
             rospy.sleep(rospy.Duration.from_sec(0.5))  # better
-        self.wait_button = -1 #not waiting 
+            if rospy.Time.now() >= endtime:
+                self.wait_button = -1 #not waiting for button
+                return False
+        self.wait_button = -1 #not waiting for button
         return True
 
     def shutdown(self):
