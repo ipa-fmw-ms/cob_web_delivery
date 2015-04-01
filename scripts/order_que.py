@@ -20,12 +20,15 @@ class QueServer:
         print "Ready to Accept Orders"
 
     def handle_order_que(self, req):
+        servback = OrderQueResponse()
         room_id = self.get_room(pixels=req.pixels, mapsegs=self.parameters["segs"])
-        if room_id == (0 or 255):
-            accepted = False
+        print "RoomId: %i" % room_id
+        if room_id == 0:
             print "invalid destination"
-            self.ac.get_result().Error = "Invalid Selection"
-
+            #self.ac.get_result().Error = "Invalid Selection"
+            servback.accepted = False
+            servback.room = "no Room"
+            return servback
         pickups = self.assign_poses(self.get_param_by_id(param="pickup_positions", param_id=req.item))
         print "pickup assign", pickups
         targets = self.assign_poses(self.get_param_by_id(param="destinations", param_id=room_id))
