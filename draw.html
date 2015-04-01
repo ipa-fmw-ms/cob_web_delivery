@@ -205,7 +205,10 @@ ros.connect('ws://localhost:9090');
     orderQueClient.callService(request, function(result) {
       console.log('calling srv');
       console.log('Result for service call on '+ ': '+ result.accepted);
-      return true;
+      if (!result.accepted) {
+        window.alert("Order Denied")
+      }
+      return result.accepted
     });
   
   }
