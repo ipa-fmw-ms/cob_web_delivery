@@ -10,26 +10,29 @@ import rospy
 import actionlib
 import tf
 
-
 class DeliveryServer:
     # create messages that are used to publish feedback/result
     _feedback = DeliveryFeedback()
     _result = DeliveryResult()
 
     def __init__(self):
+
         rospy.on_shutdown(self.shutdown)
-        print "Starting delivery Server"
-        self.deliver_as = actionlib.SimpleActionServer('delivery', DeliveryAction, self.execute, False)
-        self.deliver_as.start()
-        rospy.Subscriber("FB_phidget", DigitalSensor, self.phidget_fb_cb)
-        print "Delivery Server started"
-        print "Connecting to move_base ActionServer"
-        self.mbac = actionlib.SimpleActionClient('move_base', MoveBaseAction)
-        self.mbac.wait_for_server()
-        print "Connected to MoveBase"
 
         self.wait_button_fb = False  # not here
         self.wait_button = -1  # not here
+        rospy.Subscriber("FB_phidget", DigitalSensor, self.phidget_fb_cb)
+
+        print "Starting delivery Server"
+        self.deliver_as = actionlib.SimpleActionServer('delivery', DeliveryAction, self.execute, False)
+        self.deliver_as.start()
+        print "Connecting to move_base ActionServer"
+        self.mbac = actionlib.SimpleActionClient('move_base', MoveBaseAction)
+        self.mbac.wait_for_server()
+
+        print "Connected to MoveBase"
+        print "Delivery Server started \n"
+
 
     def execute(self, goal): #todo smach
         print "Got request for %s" % (goal.item)
@@ -37,25 +40,37 @@ class DeliveryServer:
         self.deliver_as.publish_feedback(self._feedback)
         self.move_base_multiple(goal.pickup_poses)
         print "waiting for product"
-        self.wait_fb(0, 7)
+        if not self.wait_fb(0, 7):
+            print "no product received after %i seconds"%7
+            self._result.success = False
+            self._result.Error = "no product received after %i seconds"%7
+            self._result.state = 3
+            self.deliver_as.set_aborted(self._result, "No Product received")
+            return
         print "got product"
         self.move_base_multiple(goal.destinations)
         print "waiting for customer"
-        self.wait_fb(0, 7)
+        if not self.wait_fb(0, 7):
+            print "no customer took product after %i seconds"%7
+            self._result.success = False
+            self._result.Error = "no product taken after %i seconds"%7
+            self._result.state = 3
+            self.deliver_as.set_aborted(self._result, "Product not taken")
+            return
         print "delivery successful" #RtH?
         self._result.success = True
         self._result.Error = "Arrived"
         self._result.state = 1
         self.deliver_as.set_succeeded(self._result)
-        print "Action done"
+        print "Action done \n"
 
     def move_base_multiple(self, pose_array):
         bgoal = MoveBaseGoal()
         for pose in pose_array:
             bgoal.target_pose = self.pose2d_to_spose(pose)
             #print "moving to position pose: ",  bgoal.target_pose.pose.position.x, bgoal.target_pose.pose.position.y, bgoal.target_pose.pose.position.theta
-            self.mbac.send_goal(bgoal)
-            reached = self.mbac.wait_for_result(rospy.Duration.from_sec(10.0))
+            self.mbac.send_goal(bgoal) #todo self.mbac.send_goal_and_wait()
+            reached = self.mbac.wait_for_result(rospy.Duration.from_sec(10.0)) #dynamic time from trajectory?
             if reached:
                 print "reached "
                 print pose
@@ -64,7 +79,7 @@ class DeliveryServer:
             print pose
             #rospy.WARN("unreachable")
         print "completely failed. mbac returned:"
-        print self.mbac.get_result()
+        print self.mbac.get_result() #None?
         return False
 
 
@@ -84,7 +99,7 @@ class DeliveryServer:
             if data.state[self.wait_button]:
                 self.wait_button_fb = True
 
-    def wait_fb(self, button, timeout):
+    def wait_fb(self, button, timeout): #todo: make seperate wait fb action node
         self.wait_button_fb = False
         self.wait_button = button
         endtime = rospy.Time.now() + rospy.Duration(timeout)
@@ -96,24 +111,29 @@ class DeliveryServer:
         self.wait_button = -1 #not waiting for button
         return True
 
-    def shutdown(self):
+    def shutdown(self, msg = ''):
+        print msg
         print "\n shutdown delivery manager"
-        self.mbac.cancel_all_goals()
-        self.deliver_as.need_to_terminate = True
+        print "cancel all mbac goals"
+        print self.mbac.cancel_all_goals()
+        print "killing deliver as"
+        #self.deliver_as.need_to_terminate = True
+        #self.deliver_as.is_preempt_requested()
+        #self.mbac.cancel_all_goals()
         # self.deliver_as.set_aborted()
         if self.deliver_as.is_active():
-            self._feedback.state = 6
+            #self._feedback.state = 6
             self._result.success = False
             self._result.Error = "Node Killed"
-            self._result.state = 6
-            self.deliver_as.set_preempted(self._result, 'Node got killed')
+            #self._result.state = 6
+            self.deliver_as.set_aborted(self._result, "Node got shutdown")
             #todo publish aborted state
 
 
 if __name__ == '__main__':
     rospy.init_node('delivery_server')
     server = DeliveryServer()
-    print "Ready to Serve"
+    print "Ready to Serve \n"
     rospy.spin()
   
 

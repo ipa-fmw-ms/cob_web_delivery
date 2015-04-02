@@ -17,7 +17,7 @@ class QueServer:
         self.parameters = rospy.get_param('web_order')  # try wait
         print "Waiting for delivery Actions Server"
         self.ac.wait_for_server()
-        print "Ready to Accept Orders"
+        print "Ready to Accept Orders \n"
 
     def handle_order_que(self, req):
         servback = OrderQueResponse()
@@ -45,6 +45,7 @@ class QueServer:
         accepted = self.ac.wait_for_result()
         #print "Action Returned Error: %s in state: %d " % (self.ac.get_result().Error, self.ac.get_result().state)
         print "action returned", self.ac.get_result()
+        print "\n"
 
     def assign_poses(self, pose_list):
         array = []
