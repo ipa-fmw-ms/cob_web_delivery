@@ -22,4 +22,7 @@
         <!-- startup rviz -->
         <node pkg="rviz" type="rviz" name="$(anon rviz)" args="-d $(find cob_web_delivery)/nav.rviz" respawn="false" output="screen" />
         
+        <!--remap from="/base_controller/command" to="/base/twist_controller/command" /-->
+        <node pkg="topic_tools" type="relay" name="remapit"  args="/base_controller/command /base/twist_controller/command" />
+
 </launch>
