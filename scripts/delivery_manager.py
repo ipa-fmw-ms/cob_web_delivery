@@ -40,7 +40,7 @@ class DeliveryServer:
         self.deliver_as.publish_feedback(self._feedback)
         self.move_base_multiple(goal.pickup_poses)
         print "waiting for product"
-        if not self.wait_fb(0, 7):
+        if not self.wait_fb(0, 12):
             print "no product received after %i seconds"%7
             self._result.success = False
             self._result.Error = "no product received after %i seconds"%7
@@ -50,7 +50,7 @@ class DeliveryServer:
         print "got product"
         self.move_base_multiple(goal.destinations)
         print "waiting for customer"
-        if not self.wait_fb(0, 7):
+        if not self.wait_fb(0, 12):
             print "no customer took product after %i seconds"%7
             self._result.success = False
             self._result.Error = "no product taken after %i seconds"%7
@@ -70,7 +70,7 @@ class DeliveryServer:
             bgoal.target_pose = self.pose2d_to_spose(pose)
             #print "moving to position pose: ",  bgoal.target_pose.pose.position.x, bgoal.target_pose.pose.position.y, bgoal.target_pose.pose.position.theta
             self.mbac.send_goal(bgoal) #todo self.mbac.send_goal_and_wait()
-            reached = self.mbac.wait_for_result(rospy.Duration.from_sec(10.0)) #dynamic time from trajectory?
+            reached = self.mbac.wait_for_result(rospy.Duration.from_sec(120.0)) #dynamic time from trajectory?
             if reached:
                 print "reached "
                 print pose
